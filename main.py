@@ -12,7 +12,7 @@ def load_text_model() -> genai.GenerativeModel:
 
 # Define input prompt for hyperglycemia
 input_prompt = """
-               As an expert pharmacist specializing in toxicological effects, side effects, and drug-drug interactions, your task involves analyzing input text describing various drugs. Provide information on the potential toxicological effects, side effects, and interactions between the mentioned drugs. Consider the context of individuals with specific health conditions. If there are notable interactions, specify the recommendations or precautions to be taken. Use English and Arabic languages for the response.
+               As an expert pharmacist specializing in toxicological effects, side effects, and drug-drug interactions, your task involves analyzing input text describing various drugs. Provide information on the potential toxicological effects, side effects, and interactions between the mentioned drugs. Consider the context of individuals with specific health conditions. If there are notable interactions, specify the recommendations or precautions to be taken. Use Arabic languages for the response.
                """
 
 def generate_gemini_text_response(text_model, user_input):
