@@ -9,7 +9,7 @@ st.set_page_config(
 )
 
 # **IMPORTANT: Configure the API key - DOUBLE CHECK THIS!**
-API_KEY = "YOUR_API_KEY"  # <--- REPLACE WITH YOUR ACTUAL API KEY
+API_KEY = "AIzaSyDlBv9Br45qcfbzGyr3AlcScyWQo3eSOPU"  # <--- REPLACE WITH YOUR ACTUAL API KEY
 if not API_KEY or API_KEY == "AIzaSyDlBv9Br45qcfbzGyr3AlcScyWQo3eSOPU":
     st.error("API key is missing or not configured. Please set your API key in the code.")
     st.stop()
