@@ -1,11 +1,18 @@
 import streamlit as st
 import google.generativeai as genai
 
+# Configure page settings - MUST BE THE FIRST STREAMLIT COMMAND
+st.set_page_config(
+    page_title="ُEDA AI Chat",
+    page_icon="https://www.edaegypt.gov.eg/media/wc3lsydo/group-287.png",
+    layout="wide",
+)
+
 # Configure the API key
 genai.configure(api_key="AIzaSyDlBv9Br45qcfbzGyr3AlcScyWQo3eSOPU")
 
 # Load the text generation model
-@st.cache(allow_output_mutation=True)
+@st.cache_resource # Use st.cache_resource instead of st.cache as suggested by the warning
 def load_text_model() -> genai.GenerativeModel:
     model = genai.GenerativeModel('gemini-pro')
     return model
@@ -24,12 +31,6 @@ def generate_gemini_text_response(text_model, user_input):
         return None
 
 # Display header
-st.set_page_config(
-    page_title="ُEDA AI Chat",
-    page_icon="https://www.edaegypt.gov.eg/media/wc3lsydo/group-287.png",
-    layout="wide",
-)
-
 st.markdown('''
 <img src="https://www.edaegypt.gov.eg/media/wc3lsydo/group-287.png" width="250" height="100">''', unsafe_allow_html=True)
 
