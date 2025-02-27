@@ -9,7 +9,7 @@ st.set_page_config(
 )
 
 # Configure the API key
-genai.configure(api_key="YOUR_API_KEY") # **IMPORTANT: Replace with your actual API key**
+genai.configure(api_key="AIzaSyDlBv9Br45qcfbzGyr3AlcScyWQo3eSOPU") # **IMPORTANT: Replace with your actual API key**
 
 # Load the text generation model
 @st.cache_resource # Use st.cache_resource instead of st.cache as suggested by the warning
