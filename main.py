@@ -9,13 +9,18 @@ st.set_page_config(
 )
 
 # Configure the API key
-genai.configure(api_key="AIzaSyDlBv9Br45qcfbzGyr3AlcScyWQo3eSOPU")
+genai.configure(api_key="YOUR_API_KEY") # **IMPORTANT: Replace with your actual API key**
 
 # Load the text generation model
 @st.cache_resource # Use st.cache_resource instead of st.cache as suggested by the warning
 def load_text_model() -> genai.GenerativeModel:
-    model = genai.GenerativeModel('gemini-pro')
-    return model
+    try:
+        model = genai.GenerativeModel('gemini-pro')
+        return model
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        st.stop() # Stop execution if model loading fails
+        return None
 
 # Define input prompt for hyperglycemia
 input_prompt = """
@@ -23,6 +28,8 @@ input_prompt = """
                """
 
 def generate_gemini_text_response(text_model, user_input):
+    if text_model is None: # Check if model loaded successfully
+        return None
     try:
         response = text_model.generate_content([input_prompt, user_input])
         return response.text
@@ -40,7 +47,20 @@ Powered by Google AI <img src="https://seeklogo.com/images/G/google-ai-logo-996E
 # Load the text model
 text_model = load_text_model()
 
-# User input for the food description
+# **List available models for debugging**
+st.subheader("Available Models:")
+if text_model: # Only list models if text_model is successfully loaded (not None)
+    try:
+        available_models = genai.GenerativeModel.list_models()
+        for model_info in available_models:
+            st.write(f"- **{model_info.name}**: {model_info.description}")
+    except Exception as e:
+        st.error(f"Error listing models: {e}")
+else:
+    st.warning("Model loading failed, cannot list available models.")
+
+
+# User input for the drug description
 user_input = st.text_area("Enter text describing a drug:")
 
 # Generate response button
