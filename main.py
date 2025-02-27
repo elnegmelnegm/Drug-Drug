@@ -9,8 +9,8 @@ st.set_page_config(
 )
 
 # **IMPORTANT: Configure the API key - DOUBLE CHECK THIS!**
-API_KEY = "AIzaSyDlBv9Br45qcfbzGyr3AlcScyWQo3eSOPU"  # <--- REPLACE WITH YOUR ACTUAL API KEY
-if not API_KEY or API_KEY == "AIzaSyDlBv9Br45qcfbzGyr3AlcScyWQo3eSOPU":
+API_KEY = "AIzaSyDlBv9Br45qcfbzGyr3AlcScyWQo3eSOPU"  # <--- REPLACE WITH YOUR ACTUAL API KEY HERE
+if not API_KEY or API_KEY == "YOUR_API_KEY":
     st.error("API key is missing or not configured. Please set your API key in the code.")
     st.stop()
 genai.configure(api_key=API_KEY)
@@ -32,7 +32,7 @@ def load_text_model() -> genai.GenerativeModel:
 
 # Define input prompt
 input_prompt = """
-               As an expert pharmacist specializing in toxicological effects, side effects, and drug-drug interactions... (rest of your prompt)
+               As an expert pharmacist specializing in toxicological effects, side effects, and drug-drug interactions, your task involves analyzing input text describing various drugs. Provide information on the potential toxicological effects, side effects, and interactions between the mentioned drugs. Consider the context of individuals with specific health conditions. If there are notable interactions, specify the recommendations or precautions to be taken. Use Arabic languages for the response.
                """
 
 def generate_gemini_text_response(text_model, user_input):
