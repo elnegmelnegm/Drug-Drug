@@ -15,80 +15,115 @@ if not API_KEY or API_KEY == "YOUR_API_KEY":
     st.stop()
 genai.configure(api_key=API_KEY)
 
-# First, list available models for debugging and selection
+# Display header and logos
+st.markdown('''<img src="https://www.edaegypt.gov.eg/media/wc3lsydo/group-287.png" width="250" height="100">''', unsafe_allow_html=True)
+st.markdown('''Powered by Google AI <img src="https://seeklogo.com/images/G/google-ai-logo-996E85F6FD-seeklogo.com.png" width="20" height="20"> Streamlit <img src="https://streamlit.io/images/brand/streamlit-logo-primary-colormark-darktext.png" width="22" height="22"> Python <img src="https://i.ibb.co/wwCs096/nn-1-removebg-preview-removebg-preview.png" width="22" height="22">''', unsafe_allow_html=True)
+
+# First, list available models and filter for Gemini models that support text generation
 st.subheader("Available Models")
 try:
     available_models = genai.list_models()
-    model_names = []
+    gemini_models = []
     
-    if available_models:
-        for model_info in available_models:
-            st.write(f"- **{model_info.name}**: {model_info.description}")
-            model_names.append(model_info.name)
+    # Looking specifically for Gemini 1.5 or 2.0 models that are likely to support text generation
+    for model in available_models:
+        model_name = model.name
+        if ("gemini-1.5" in model_name or "gemini-2.0" in model_name) and not "vision" in model_name:
+            gemini_models.append(model_name)
+            st.write(f"- **{model_name}**: {model.description}")
+    
+    if not gemini_models:
+        st.warning("No Gemini 1.5 or 2.0 models found. Showing all available models.")
+        for model in available_models:
+            st.write(f"- **{model.name}**: {model.description}")
+            gemini_models.append(model.name)
+    
+    # Create a model selector if models are available
+    if gemini_models:
+        # Default to a newer model if available, otherwise use first in list
+        default_index = 0
+        for i, model in enumerate(gemini_models):
+            # Prioritize Gemini 2.0 Flash or Gemini 1.5 Flash
+            if "gemini-2.0-flash" in model or "gemini-1.5-flash" in model:
+                default_index = i
+                break
         
-        # Create a model selector if models are available
-        if model_names:
-            selected_model_name = st.selectbox("Select a model to use:", model_names)
-        else:
-            st.error("No models available with your API key/project.")
-            st.stop()
+        selected_model_name = st.selectbox(
+            "Select a model to use:", 
+            gemini_models,
+            index=default_index
+        )
     else:
-        st.warning("No models listed. Check API key and project setup.")
+        st.error("No models available with your API key/project.")
         st.stop()
 except Exception as e:
     st.error(f"Error listing models: {e}")
     st.error("Please check your API key and Google Cloud project configuration.")
     st.stop()
 
-# Load the text generation model
-@st.cache_resource
-def load_text_model(model_name):
-    try:
-        model = genai.GenerativeModel(model_name)
-        return model
-    except Exception as e:
-        st.error(f"Error loading model '{model_name}': {e}")
-        st.error("Please check:")
-        st.error(f"- Is '{model_name}' model available in your region/project?")
-        st.error("- Is the Generative AI API enabled in your Google Cloud Project?")
-        st.error("- Is your API key correctly configured and valid?")
-        return None
-
 # Define input prompt
 input_prompt = """
                As an expert pharmacist specializing in toxicological effects, side effects, and drug-drug interactions, your task involves analyzing input text describing various drugs. Provide information on the potential toxicological effects, side effects, and interactions between the mentioned drugs. Consider the context of individuals with specific health conditions. If there are notable interactions, specify the recommendations or precautions to be taken. Use Arabic languages for the response.
                """
 
-def generate_gemini_text_response(text_model, user_input):
-    if text_model is None:
-        return None
-    try:
-        response = text_model.generate_content([input_prompt, user_input])
-        return response.text
-    except Exception as e:
-        st.error(f"Error generating text response: {e}")
-        st.error(f"Detailed Error: {e}")
-        return None
-
-# Display header and logos
-st.markdown('''<img src="https://www.edaegypt.gov.eg/media/wc3lsydo/group-287.png" width="250" height="100">''', unsafe_allow_html=True)
-st.markdown('''Powered by Google AI <img src="https://seeklogo.com/images/G/google-ai-logo-996E85F6FD-seeklogo.com.png" width="20" height="20"> Streamlit <img src="https://streamlit.io/images/brand/streamlit-logo-primary-colormark-darktext.png" width="22" height="22"> Python <img src="https://i.ibb.co/wwCs096/nn-1-removebg-preview-removebg-preview.png" width="22" height="22">''', unsafe_allow_html=True)
-
-# Load the selected model
-text_model = load_text_model(selected_model_name)
-
 # User input
 user_input = st.text_area("Enter text describing a drug:")
 
+# Function to generate response using the selected model
+def generate_response(model_name, prompt, user_text):
+    try:
+        # Initialize the model
+        model = genai.GenerativeModel(model_name)
+        
+        # Check if the model supports safety settings and apply if needed
+        safety_settings = None
+        try:
+            # Some models support safety settings
+            safety_settings = {
+                "HARM_CATEGORY_HARASSMENT": "BLOCK_NONE",
+                "HARM_CATEGORY_HATE_SPEECH": "BLOCK_NONE",
+                "HARM_CATEGORY_SEXUALLY_EXPLICIT": "BLOCK_NONE",
+                "HARM_CATEGORY_DANGEROUS_CONTENT": "BLOCK_NONE"
+            }
+            # Generate content with the provided prompt and user input
+            response = model.generate_content(
+                [prompt, user_text],
+                safety_settings=safety_settings
+            )
+        except:
+            # If safety settings aren't supported, try without them
+            response = model.generate_content([prompt, user_text])
+            
+        return response.text
+    except Exception as e:
+        st.error(f"Error generating response with {model_name}: {e}")
+        st.error(f"Detailed error: {str(e)}")
+        
+        # Provide troubleshooting guidance based on the error
+        if "404" in str(e) and "not found" in str(e):
+            st.error(f"The model '{model_name}' might not support the generateContent method.")
+            st.error("Try selecting a different model from the dropdown.")
+        elif "403" in str(e):
+            st.error("Permission denied. Your API key may not have access to this model.")
+        
+        return None
+
 # Generate response button
 if st.button("Generate Response"):
-    if text_model is None:
-        st.error("Model failed to load. Check the errors above.")
+    if not user_input:
+        st.warning("Please enter some text about drugs to analyze.")
     else:
-        with st.spinner("Generating response..."):
-            response = generate_gemini_text_response(text_model, user_input)
+        with st.spinner(f"Generating response using {selected_model_name}..."):
+            response = generate_response(selected_model_name, input_prompt, user_input)
+            
             if response:
                 st.subheader("Generated Response:")
                 st.write(response)
             else:
-                st.error("Failed to generate a response. Check the errors above.")
+                st.error("Failed to generate a response. Try selecting a different model.")
+                
+                # Suggest a fallback option
+                st.info("If you continue to have issues, try one of these approaches:")
+                st.info("1. Select a different model from the dropdown")
+                st.info("2. Make sure the Google Generative AI API is enabled in your Google Cloud project")
+                st.info("3. Check if your API key has the necessary permissions")
