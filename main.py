@@ -19,23 +19,21 @@ genai.configure(api_key=API_KEY)
 st.markdown('''<img src="https://www.edaegypt.gov.eg/media/wc3lsydo/group-287.png" width="250" height="100">''', unsafe_allow_html=True)
 st.markdown('''Powered by Google AI <img src="https://seeklogo.com/images/G/google-ai-logo-996E85F6FD-seeklogo.com.png" width="20" height="20"> Streamlit <img src="https://streamlit.io/images/brand/streamlit-logo-primary-colormark-darktext.png" width="22" height="22"> Python <img src="https://i.ibb.co/wwCs096/nn-1-removebg-preview-removebg-preview.png" width="22" height="22">''', unsafe_allow_html=True)
 
-# First, list available models and filter for Gemini models that support text generation
-st.subheader("Available Models")
+# Find available models but only show the selector, not the full list
 try:
+    # Get available models without displaying them
     available_models = genai.list_models()
     gemini_models = []
     
-    # Looking specifically for Gemini 1.5 or 2.0 models that are likely to support text generation
+    # Filter for Gemini 1.5 or 2.0 models that are likely to support text generation
     for model in available_models:
         model_name = model.name
         if ("gemini-1.5" in model_name or "gemini-2.0" in model_name) and not "vision" in model_name:
             gemini_models.append(model_name)
-            st.write(f"- **{model_name}**: {model.description}")
     
     if not gemini_models:
-        st.warning("No Gemini 1.5 or 2.0 models found. Showing all available models.")
+        # If no Gemini models found, use all available models
         for model in available_models:
-            st.write(f"- **{model.name}**: {model.description}")
             gemini_models.append(model.name)
     
     # Create a model selector if models are available
@@ -48,11 +46,13 @@ try:
                 default_index = i
                 break
         
+        st.subheader("Model Selection")
         selected_model_name = st.selectbox(
             "Select a model to use:", 
             gemini_models,
             index=default_index
         )
+        st.success(f"Using model: {selected_model_name}")
     else:
         st.error("No models available with your API key/project.")
         st.stop()
